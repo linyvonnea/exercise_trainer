@@ -1,6 +1,7 @@
 # src/visualization.py
 
 import cv2
+import numpy as np
 
 
 def form_label(score: float) -> str:
@@ -20,7 +21,6 @@ def draw_hud(
     exercise_name,
     reps,
     feedback,
-    form_score=None,
     target_reps=None,
     color=(255, 255, 255),
 ):
@@ -48,30 +48,6 @@ def draw_hud(
         color,
         2,
     )
-
-    # Right side: form score + label
-    if form_score is not None:
-        text = f"Last Form: {form_score:.0f}/100"
-        cv2.putText(
-            frame,
-            text,
-            (w - 280, 25),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.7,
-            (0, 255, 0),
-            2,
-        )
-        label = form_label(form_score)
-        if label:
-            cv2.putText(
-                frame,
-                label,
-                (w - 280, 50),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                (0, 200, 255),
-                2,
-            )
 
     # Progress bar (if target reps known)
     if target_reps is not None and target_reps > 0:
@@ -108,5 +84,48 @@ def draw_hud(
                 (0, 255, 255),
                 2,
             )
+
+    return frame
+
+
+def render_summary_overlay(summary, target_reps=None, size=None):
+    if size is None:
+        width, height = 640, 480
+    else:
+        width, height = size
+
+    frame = np.zeros((height, width, 3), dtype=np.uint8)
+    frame[:] = (20, 20, 20)
+
+    cv2.rectangle(frame, (15, 15), (width - 15, height - 15), (80, 80, 80), 2)
+
+    lines = [
+        "Workout Summary",
+        f"Exercise: {summary['exercise']}",
+        f"Total reps: {summary['total_reps']}",
+    ]
+
+    if target_reps is not None:
+        lines.append(f"Target reps: {target_reps}")
+
+    log_path = summary.get("log_path")
+    if log_path:
+        lines.append(f"Log saved to: {log_path}")
+
+    lines.append("Press q or Esc to close")
+
+    y_start = 100
+    line_spacing = 45
+    for idx, text in enumerate(lines):
+        y = y_start + idx * line_spacing
+        cv2.putText(
+            frame,
+            text,
+            (40, y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.9 if idx == 0 else 0.8,
+            (0, 255, 255) if idx == 0 else (255, 255, 255),
+            2,
+        )
 
     return frame

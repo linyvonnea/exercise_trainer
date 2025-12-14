@@ -3,11 +3,13 @@
 from .squat import SquatExercise
 from .arm_raise import ArmRaiseExercise
 from .side_bend import SideBendExercise
+from .front_lunge import FrontLungeExercise
 
 EXERCISE_CLASSES = {
     "squat": SquatExercise,
     "arm_raise": ArmRaiseExercise,
     "side_bend": SideBendExercise,
+    "front_lunge": FrontLungeExercise,
 }
 
 def get_exercise(name: str):

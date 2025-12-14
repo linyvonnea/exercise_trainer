@@ -34,15 +34,18 @@ def knee_angle(landmarks, left=True):
 
 
 def shoulder_angle(landmarks, left=True):
-    # angle between torso vertical and upper arm: shoulder-elbow-wrist
+    """Shoulder flexion: hip-shoulder-elbow angle.
+    Arm down ≈ 0–30°, arm overhead ≈ 150–180°.
+    """
     if left:
-        shoulder_idx, elbow_idx, wrist_idx = 11, 13, 15
+        hip_idx, shoulder_idx, elbow_idx = 23, 11, 13
     else:
-        shoulder_idx, elbow_idx, wrist_idx = 12, 14, 16
+        hip_idx, shoulder_idx, elbow_idx = 24, 12, 14
+
+    hip = get_point(landmarks, hip_idx)
     shoulder = get_point(landmarks, shoulder_idx)
     elbow = get_point(landmarks, elbow_idx)
-    wrist = get_point(landmarks, wrist_idx)
-    return angle_between_points(shoulder, elbow, wrist)
+    return angle_between_points(hip, shoulder, elbow)
 
 
 def torso_tilt_angle(landmarks):

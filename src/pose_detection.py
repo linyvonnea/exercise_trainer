@@ -24,7 +24,8 @@ class PoseDetector:
         self.mp_drawing_styles = mp.solutions.drawing_styles
 
     def detect(self, frame, draw=True):
-        """Return landmarks as np.array of shape (33, 3) in normalized coordinates [0,1].
+        """Return landmarks as np.array of shape (33, 4).
+        Columns: x, y, z (normalized) and visibility (0–1).
         Also returns an annotated frame if draw=True.
         """
         image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -35,7 +36,7 @@ class PoseDetector:
             h, w, _ = frame.shape
             lm_list = []
             for lm in results.pose_landmarks.landmark:
-                lm_list.append([lm.x, lm.y, lm.z])
+                lm_list.append([lm.x, lm.y, lm.z, lm.visibility])
             landmarks = np.array(lm_list, dtype=np.float32)
             if draw:
                 self.mp_drawing.draw_landmarks(

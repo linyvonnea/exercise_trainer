@@ -16,6 +16,10 @@ EXERCISE_INFO = {
         "title": "Side Bend",
         "description": "Lateral flexibility exercise. Bend sideways at the waist while staying tall.",
     },
+    "front_lunge": {
+        "title": "Front Lunge",
+        "description": "Lower-body strength exercise. Step forward, drop into a right-leg lunge, and return to standing.",
+    },
 }
 
 
@@ -84,8 +88,7 @@ def main():
         run_workout_mode(exercise, camera_index=0, target_reps=target_reps)
     else:
         run_learn_mode(exercise, camera_index=0)
-
-    show_summary(exercise)
+        show_summary(exercise)
 
 
 if __name__ == "__main__":

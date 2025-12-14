@@ -9,6 +9,7 @@ EXERCISE_TIPS = {
     "Squat": "Feet shoulder-width. Bend knees, keep chest up.",
     "Arm Raise": "Raise both arms overhead. Keep elbows straight.",
     "Side Bend": "Stand tall. Slide hand down leg on one side.",
+    "Front Lunge": "Step forward, drop both knees, keep front knee over ankle.",
 }
 
 
@@ -36,10 +37,9 @@ def run_learn_mode(exercise: BaseExercise, camera_index: int = 0):
         landmarks, annotated = detector.detect(frame, draw=True)
         result = exercise.update(landmarks)
 
-        # If no rep event text, show the static tip
-        if result.feedback and "Rep" in result.feedback:
-            text = result.feedback
-        else:
+        # Prefer exercise feedback; fall back to tip only if feedback is neutral
+        text = result.feedback or base_tip
+        if text == "Good form!":
             text = base_tip
 
         hud = draw_hud(
@@ -47,7 +47,6 @@ def run_learn_mode(exercise: BaseExercise, camera_index: int = 0):
             f"{exercise.name} (Learn)",
             exercise.reps,
             text,
-            form_score=result.form_score,
             target_reps=None,
         )
         cv2.imshow("Learn Mode", hud)

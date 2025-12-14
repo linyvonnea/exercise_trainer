@@ -17,40 +17,34 @@ def append_log(exercise: BaseExercise):
     ensure_log_dir()
     file_exists = os.path.exists(LOG_PATH) and os.path.getsize(LOG_PATH) > 0
 
-    avg_score = None
-    if exercise.rep_scores:
-        avg_score = sum(exercise.rep_scores) / len(exercise.rep_scores)
-
     with open(LOG_PATH, "a", newline="") as f:
         writer = csv.writer(f)
         if not file_exists:
             writer.writerow(
-                ["timestamp", "exercise", "total_reps", "avg_form_score"]
+                ["timestamp", "exercise", "total_reps"]
             )
         writer.writerow(
             [
                 datetime.now().isoformat(timespec="seconds"),
                 exercise.name,
                 exercise.reps,
-                f"{avg_score:.1f}" if avg_score is not None else "",
             ]
         )
 
 
-def show_summary(exercise: BaseExercise):
-    print("========== Workout Summary ==========")
-    print(f"Exercise: {exercise.name}")
-    print(f"Total reps: {exercise.reps}")
-    if exercise.rep_scores:
-        avg_score = sum(exercise.rep_scores) / len(exercise.rep_scores)
-        best = max(exercise.rep_scores)
-        worst = min(exercise.rep_scores)
-        print(f"Average form score: {avg_score:.1f}/100")
-        print(f"Best rep score:     {best:.1f}")
-        print(f"Worst rep score:    {worst:.1f}")
-    else:
-        print("No form scores recorded.")
-    print("Log file:", LOG_PATH)
-    print("=====================================")
+def show_summary(exercise: BaseExercise, print_summary: bool = True):
+    summary = {
+        "exercise": exercise.name,
+        "total_reps": exercise.reps,
+        "log_path": LOG_PATH,
+    }
+
+    if print_summary:
+        print("========== Workout Summary ==========")
+        print(f"Exercise: {summary['exercise']}")
+        print(f"Total reps: {summary['total_reps']}")
+        print("Log file:", summary["log_path"])
+        print("=====================================")
 
     append_log(exercise)
+    return summary

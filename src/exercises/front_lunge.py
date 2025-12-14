@@ -1,19 +1,18 @@
-# src/exercises/squat.py
-
 from typing import Dict, Any
+
 from .base import BaseExercise, ExerciseResult
 from angles import knee_angle, torso_tilt_angle
 import config
 from feedback import combine_feedback
 
 
-class SquatExercise(BaseExercise):
-    name = "Squat"
+class FrontLungeExercise(BaseExercise):
+    name = "Front Lunge"
     required_landmarks = [11, 12, 23, 24, 26, 28]
 
     def __init__(self):
         super().__init__()
-        self.state = "up"  # "up" or "down"
+        self.state = "up"
 
     def update(self, landmarks) -> ExerciseResult:
         fb_msgs = []
@@ -25,30 +24,27 @@ class SquatExercise(BaseExercise):
         if not self.has_required_landmarks(landmarks):
             return ExerciseResult(self.reps, self.missing_landmarks_feedback(), metrics)
 
-        # Use right knee (or left, but be consistent)
-        knee = knee_angle(landmarks, left=False)
+        front_knee = knee_angle(landmarks, left=False)
         torso_tilt = torso_tilt_angle(landmarks)
 
-        metrics["knee_angle"] = knee
+        metrics["front_knee_angle"] = front_knee
         metrics["torso_tilt"] = torso_tilt
 
-        # --- form feedback ---
         if torso_tilt > 20:
-            fb_msgs.append("Keep your back more upright")
+            fb_msgs.append("Keep your chest lifted")
 
-        # --- rep logic ---
-        if knee < config.SQUAT_KNEE_DOWN_THRESHOLD:
+        if front_knee < config.LUNGE_FRONT_KNEE_DOWN_THRESHOLD:
             if self.state == "up":
                 self.state = "down"
-
-        elif knee > config.SQUAT_KNEE_UP_THRESHOLD:
+                fb_msgs.append("Hold the lunge, keep front knee over ankle.")
+        elif front_knee > config.LUNGE_FRONT_KNEE_UP_THRESHOLD:
             if self.state == "down":
                 self.reps += 1
                 self.state = "up"
-                fb_msgs.append(f"Nice squat! Rep {self.reps}")
+                fb_msgs.append(f"Strong lunge! Rep {self.reps}")
 
         stage_instruction = (
-            "Bend knees and sit back." if self.state == "up" else "Drive through your heels to stand tall."
+            "Step forward and bend both knees." if self.state == "up" else "Drive through the front heel to stand tall."
         )
         fb_msgs.append(stage_instruction)
 
