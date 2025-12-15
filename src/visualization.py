@@ -3,106 +3,152 @@
 import cv2
 import numpy as np
 
+HEADER_H = 95          # top HUD height
+FOOTER_H = 70          # bottom feedback bar height
+MARGIN = 12
 
-def form_label(score: float) -> str:
-    if score is None:
-        return ""
-    if score >= 85:
-        return "Excellent form"
-    if score >= 70:
-        return "Good form"
-    if score >= 50:
-        return "Okay, can improve"
-    return "Needs improvement"
+COLOR_BG = (20, 20, 20)
+COLOR_TEXT = (255, 255, 255)
+COLOR_ACCENT = (0, 255, 255)
+COLOR_WARN = (0, 0, 255)
+
+COLOR_BAR_BORDER = (90, 90, 90)
+COLOR_BAR_FILL = (0, 200, 0)
 
 
 def draw_hud(
     frame,
-    exercise_name,
-    reps,
-    feedback,
-    target_reps=None,
-    color=(255, 255, 255),
+    exercise_name: str,
+    reps: int,
+    feedback: str,
+    target_reps: int | None = None,
+    mode_label: str | None = None,
+    color=COLOR_TEXT,
 ):
+
     h, w, _ = frame.shape
 
-    # Top bar background
-    cv2.rectangle(frame, (0, 0), (w, 60), (0, 0, 0), -1)
+    # --- header background ---
+    cv2.rectangle(frame, (0, 0), (w, HEADER_H), COLOR_BG, -1)
 
-    # Left side: exercise + reps
+    # --- left header text: exercise + reps ---
     cv2.putText(
         frame,
         f"Exercise: {exercise_name}",
-        (10, 25),
+        (MARGIN, 32),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.7,
+        0.75,
         color,
         2,
     )
     cv2.putText(
         frame,
         f"Reps: {reps}",
-        (10, 50),
+        (MARGIN, 68),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.7,
+        0.75,
         color,
         2,
     )
 
-    # Progress bar (if target reps known)
-    if target_reps is not None and target_reps > 0:
-        bar_x1, bar_y1 = 10, 70
-        bar_x2, bar_y2 = w - 10, 90
-        cv2.rectangle(frame, (bar_x1, bar_y1), (bar_x2, bar_y2), (80, 80, 80), 2)
-        progress = min(1.0, reps / float(target_reps))
-        filled_x2 = int(bar_x1 + (bar_x2 - bar_x1) * progress)
-        cv2.rectangle(
-            frame, (bar_x1 + 2, bar_y1 + 2), (filled_x2 - 2, bar_y2 - 2), (0, 200, 0), -1
+    # --- right header text: mode label ---
+    if mode_label:
+        # Right-align by estimating text width
+        (tw, th), _ = cv2.getTextSize(mode_label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
+        cv2.putText(
+            frame,
+            mode_label,
+            (w - MARGIN - tw, 32),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            COLOR_TEXT,
+            2,
         )
 
-    # Bottom feedback bar OR big "no person" text
+    # --- progress bar  ---
+    if target_reps is not None and target_reps > 0:
+        bar_x1, bar_y1 = MARGIN, 74
+        bar_x2, bar_y2 = w - MARGIN, 92
+
+        # outline
+        cv2.rectangle(frame, (bar_x1, bar_y1), (bar_x2, bar_y2), COLOR_BAR_BORDER, 2)
+
+        # fill
+        progress = min(1.0, max(0.0, reps / float(target_reps)))
+        filled_x2 = int(bar_x1 + (bar_x2 - bar_x1) * progress)
+
+        
+        if filled_x2 > bar_x1 + 2:
+            cv2.rectangle(
+                frame,
+                (bar_x1 + 2, bar_y1 + 2),
+                (filled_x2 - 2, bar_y2 - 2),
+                COLOR_BAR_FILL,
+                -1,
+            )
+
+        # show "reps/target"
+        prog_text = f"{reps}/{target_reps}"
+        (ptw, pth), _ = cv2.getTextSize(prog_text, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 2)
+        cv2.putText(
+            frame,
+            prog_text,
+            (w - MARGIN - ptw, 82),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.55,
+            COLOR_TEXT,
+            2,
+        )
+
+    # --- Feedback ---
     if feedback:
         if "No person detected" in feedback:
             # Big centered warning
+            (tw, th), _ = cv2.getTextSize(feedback, cv2.FONT_HERSHEY_SIMPLEX, 1.0, 3)
+            x = max(MARGIN, (w - tw) // 2)
+            y = (h // 2)
             cv2.putText(
                 frame,
                 feedback,
-                (int(w * 0.1), int(h * 0.5)),
+                (x, y),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 1.0,
-                (0, 0, 255),
+                COLOR_WARN,
                 3,
             )
         else:
-            cv2.rectangle(frame, (0, h - 60), (w, h), (0, 0, 0), -1)
+            # Footer bar + text
+            cv2.rectangle(frame, (0, h - FOOTER_H), (w, h), COLOR_BG, -1)
             cv2.putText(
                 frame,
                 feedback,
-                (10, h - 25),
+                (MARGIN, h - 25),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                (0, 255, 255),
+                0.7,
+                COLOR_ACCENT,
                 2,
             )
 
     return frame
 
 
-def render_summary_overlay(summary, target_reps=None, size=None):
+def render_summary_overlay(summary: dict, target_reps: int | None = None, size=None):
+
     if size is None:
-        width, height = 640, 480
+        width, height = 800, 520
     else:
         width, height = size
 
     frame = np.zeros((height, width, 3), dtype=np.uint8)
-    frame[:] = (20, 20, 20)
+    frame[:] = (18, 18, 18)
 
-    cv2.rectangle(frame, (15, 15), (width - 15, height - 15), (80, 80, 80), 2)
+    # border card
+    cv2.rectangle(frame, (20, 20), (width - 20, height - 20), (80, 80, 80), 2)
 
     lines = [
         "Workout Summary",
-        f"Exercise: {summary['exercise']}",
-        f"Total reps: {summary['total_reps']}",
+        f"Exercise: {summary.get('exercise', 'N/A')}",
+        f"Total reps: {summary.get('total_reps', 0)}",
     ]
 
     if target_reps is not None:
@@ -114,18 +160,22 @@ def render_summary_overlay(summary, target_reps=None, size=None):
 
     lines.append("Press q or Esc to close")
 
-    y_start = 100
-    line_spacing = 45
-    for idx, text in enumerate(lines):
-        y = y_start + idx * line_spacing
+    y = 110
+    for i, text in enumerate(lines):
+        is_title = (i == 0)
+        scale = 1.05 if is_title else 0.85
+        color = (0, 255, 255) if is_title else (255, 255, 255)
+        thickness = 3 if is_title else 2
+
         cv2.putText(
             frame,
             text,
-            (40, y),
+            (50, y),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.9 if idx == 0 else 0.8,
-            (0, 255, 255) if idx == 0 else (255, 255, 255),
-            2,
+            scale,
+            color,
+            thickness,
         )
+        y += 55 if is_title else 45
 
     return frame

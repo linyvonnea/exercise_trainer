@@ -24,12 +24,9 @@ class PoseDetector:
         self.mp_drawing_styles = mp.solutions.drawing_styles
 
     def detect(self, frame, draw=True):
-        """Return landmarks as np.array of shape (33, 4).
-        Columns: x, y, z (normalized) and visibility (0–1).
-        Also returns an annotated frame if draw=True.
-        """
+        # return landmarks and annotated frame
         image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = self.pose.process(image_rgb)
+        results = self.pose.process(image_rgb) # run the model
 
         landmarks = None
         if results.pose_landmarks:

@@ -4,7 +4,6 @@ import os
 import platform
 
 def play_rep_sound():
-    """Play a short sound when a rep is completed."""
     system = platform.system()
     try:
         if system == "Darwin":  # macOS
@@ -12,8 +11,7 @@ def play_rep_sound():
         elif system == "Windows":
             import winsound
             winsound.MessageBeep()
-        else:  # Linux or others: fallback to terminal bell
+        else: # bell
             print("\a", end="", flush=True)
     except Exception:
-        # If anything fails, just ignore audio.
         pass
