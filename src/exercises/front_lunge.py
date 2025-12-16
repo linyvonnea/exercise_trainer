@@ -1,5 +1,6 @@
-from typing import Dict, Any
+# src/exercises/front_lunge.py
 
+from typing import Dict, Any
 from .base import BaseExercise, ExerciseResult
 from angles import knee_angle, torso_tilt_angle
 import config
