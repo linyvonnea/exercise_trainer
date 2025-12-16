@@ -14,7 +14,7 @@ class ExerciseResult:
 
 
 class BaseExercise:
-    """Abstract base class for an exercise."""
+    # Abstract base class for all exercises
     name: str = "BaseExercise"
     required_landmarks: List[int] = []
     visibility_threshold: float = 0.5
@@ -28,7 +28,7 @@ class BaseExercise:
         self.state = None
 
     def has_required_landmarks(self, landmarks) -> bool:
-        """Return True only if all required landmarks have visibility >= threshold."""
+        # Return True if all required landmarks are visible above the threshold
         if landmarks is None:
             return False
         if not self.required_landmarks:
@@ -45,7 +45,4 @@ class BaseExercise:
         return "Move so the camera sees all needed joints."
 
     def update(self, landmarks) -> ExerciseResult:
-        """Given landmarks for current frame, update state, reps, and feedback.
-        Must be implemented by subclasses.
-        """
         raise NotImplementedError
